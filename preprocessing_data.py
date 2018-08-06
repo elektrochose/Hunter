@@ -13,6 +13,14 @@ from keras.utils import np_utils
 # load ascii text and covert to lowercase
 ROOT = '/home/pablo/python/'
 
+'''
+TO-DO LIST:
+Split into training and validation sets properly
+Set up new folder for new models
+Track training and validation loss/accuracy over epochs
+'''
+
+
 if not os.path.isfile(ROOT + 'Hunter/input_XY.p'):
 	raw_text = open(ROOT + 'Hunter/input.txt', 'r').read()
 	raw_text = raw_text.lower()
@@ -44,52 +52,12 @@ if not os.path.isfile(ROOT + 'Hunter/input_XY.p'):
 	X = X / float(n_vocab)
 	# one hot encode the output variable
 	y = np_utils.to_categorical(dataY)
-	pickle.dump([X,y], open(ROOT + 'Hunter/input_XY.p','wb'))
+	#saving data bulk
+	pickle.dump([X,y], open(ROOT + 'Hunter/Extras/input_XY.p','wb'))
+	#sampling 100 random entries for seeds
+	sub_dataX = [dataX[w] for w in np.random.randint(0,len(dataX),100)]
+    pickle.dump(sub_dataX, open(ROOT + 'Hunter/Extras/seeds.p' , 'wb'))
+    pickle.dump(int_to_char, open(ROOT + 'Hunter/Extras/int_to_char.p', 'wb'))
 else:
 	print 'loading data...'
-	X,y = pickle.load(open(ROOT + 'Hunter/input_XY.p', 'rb'))
-
-
-'''
-TO-DO LIST:
-Split into training and validation sets properly
-Set up new folder for new models
-Track training and validation loss/accuracy over epochs
-
-'''
-initial_epoch = 0
-no_units = 512
-model_dir = 'Hunter/models/'
-# define the LSTM model
-model = Sequential()
-model.add(LSTM(512, input_shape=(X.shape[1], X.shape[2]), return_sequences=True))
-model.add(Dropout(0.5))
-model.add(LSTM(512))
-model.add(Dropout(0.5))
-model.add(Dense(y.shape[1], activation='softmax'))
-
-
-#load best model if it exists and start from there
-if os.listdir(ROOT + model_dir):
-    models_so_far = os.listdir(ROOT + model_dir)
-    models_so_far.sort()
-    best_model = models_so_far[-1]
-    dashes = [w.start() for w in re.finditer(r"-", best_model)]
-    initial_epoch = int(best_model[dashes[1] + 1: dashes[2]])
-    print 'best model so far: %s, epoch: %i' %(best_model, initial_epoch)
-    model.load_weights(ROOT + model_dir + best_model)
-
-model.compile(loss='categorical_crossentropy', optimizer='adam')
-
-filepath = ROOT + model_dir + 'weights-improvement-{epoch:02d}-{loss:.4f}.hdf5'
-checkpoint = ModelCheckpoint(filepath,
- 							 monitor='loss',
-							 verbose=1,
-							 save_best_only=True,
-							 mode='min')
-callbacks_list = [checkpoint]
-
-# fit the model
-model.fit(X, y, epochs=100, batch_size=512,
- 				callbacks=callbacks_list,
-				initial_epoch=initial_epoch)
+	X,y = pickle.load(open(ROOT + 'Hunter/Extras/input_XY.p', 'rb'))
