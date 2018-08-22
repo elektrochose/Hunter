@@ -1,4 +1,4 @@
-#Hunter S. Thompson Bot - char RNN
+# Hunter S. Thompson Bot - char RNN
 Here I implemented a char-RNN on the works of Hunter S. Thompson.
 
 ## Preprocessing
